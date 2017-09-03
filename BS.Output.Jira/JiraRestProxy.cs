@@ -20,7 +20,7 @@ namespace BS.Output.Jira
       {
         string requestUrl = GetApiUrl(url, "project");
         string resultData = await GetData(requestUrl, userName, password);
-        List<JiraRestProject> projects  = JsonHelper.FromJson<List<JiraRestProject>>(resultData);
+        List<JiraRestProject> projects  = FromJson<List<JiraRestProject>>(resultData);
 
         return new GetProjectsResult(ResultStatus.Success, null, projects);
 
@@ -53,7 +53,7 @@ namespace BS.Output.Jira
       {
         string requestUrl = GetApiUrl(url, "issue/createmeta");
         string resultData = await GetData(requestUrl, userName, password);
-        JiraRestIssueTypes issueTypes = JsonHelper.FromJson<JiraRestIssueTypes>(resultData);
+        JiraRestIssueTypes issueTypes = FromJson<JiraRestIssueTypes>(resultData);
 
         return new GetProjectIssueTypesResult(ResultStatus.Success, null, issueTypes);
 
@@ -86,7 +86,7 @@ namespace BS.Output.Jira
       {
         string requestUrl = GetApiUrl(url, "issue");
         string resultData = await SendData(requestUrl, userName, password, String.Format("{{\"fields\":{{\"project\":{{\"key\":\"{0}\"}},\"summary\":\"{1}\",\"description\":\"{2}\",\"issuetype\": {{\"id\":\"{3}\"}}}}}}\"", HttpUtility.HtmlEncode(projectKey), HttpUtility.HtmlEncode(summary), HttpUtility.HtmlEncode(description), issueTypeID));
-        string issueKey =  JsonHelper.FromJson<CreateIssueDataResult>(resultData).IssueKey;
+        string issueKey =  FromJson<CreateIssueDataResult>(resultData).IssueKey;
 
         return new CreateIssueResult(ResultStatus.Success, null, issueKey);
         
@@ -103,7 +103,7 @@ namespace BS.Output.Jira
               return new CreateIssueResult(ResultStatus.LoginFailed, null, null);
 
             case HttpStatusCode.BadRequest:
-              return new CreateIssueResult(ResultStatus.Failed, JsonHelper.FromJson<ErrorResult>(response).GetAllErrorMessages(), null);
+              return new CreateIssueResult(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages(), null);
               
             default:
               return new CreateIssueResult(ResultStatus.Failed, response.StatusDescription, null);
@@ -114,8 +114,7 @@ namespace BS.Output.Jira
       }
 
     }
-
-
+    
     static internal async Task<Result> AddCommentToIssue(string url, string userName, string password, string issueKey, string comment)
     {
 
@@ -141,7 +140,7 @@ namespace BS.Output.Jira
               return new Result(ResultStatus.LoginFailed, null);
 
             case HttpStatusCode.BadRequest:
-              return new Result(ResultStatus.Failed, JsonHelper.FromJson<ErrorResult>(response).GetAllErrorMessages());
+              return new Result(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
              
             default:
               return new Result(ResultStatus.Failed, response.StatusDescription);
@@ -152,8 +151,7 @@ namespace BS.Output.Jira
       }
 
     }
-
-
+    
     static internal async Task<Result> AddAttachmentToIssue(string url, string userName, string password, string issueKey, string fullFileName, byte[] fileBytes, string fileMimeType)
     {
 
@@ -179,10 +177,10 @@ namespace BS.Output.Jira
               return new Result(ResultStatus.LoginFailed, null);
 
             case HttpStatusCode.Forbidden:
-              return new Result(ResultStatus.Failed, JsonHelper.FromJson<ErrorResult>(response).GetAllErrorMessages());
+              return new Result(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
 
             case HttpStatusCode.NotFound:
-              return new Result(ResultStatus.Failed, JsonHelper.FromJson<ErrorResult>(response).GetAllErrorMessages());
+              return new Result(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
 
             default:
               return new Result(ResultStatus.Failed, response.StatusDescription);
@@ -310,6 +308,40 @@ namespace BS.Output.Jira
       apiUrl += "rest/api/latest/" + method;
 
       return apiUrl;
+
+    }
+
+    private static T FromJson<T>(string jsonText)
+    {
+
+      DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
+
+      using (MemoryStream stream = new MemoryStream(Encoding.Unicode.GetBytes(jsonText)))
+      {
+        return (T)serializer.ReadObject(stream);
+      }
+
+    }
+
+    private static T FromJson<T>(WebResponse response)
+    {
+
+      string responseContent = null;
+
+      using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+      {
+        responseContent = reader.ReadToEnd();
+      }
+
+      DataContractJsonSerializerSettings serializerSettings = new DataContractJsonSerializerSettings();
+      serializerSettings.UseSimpleDictionaryFormat = true;
+
+      DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T), serializerSettings);
+
+      using (MemoryStream memoryStream = new MemoryStream(Encoding.Unicode.GetBytes(responseContent)))
+      {
+        return (T)serializer.ReadObject(memoryStream);
+      }
 
     }
 
@@ -444,45 +476,6 @@ namespace BS.Output.Jira
       get { return issueKey; }
     }
 
-  }
-
-  class JsonHelper
-  {
-
-    public static T FromJson<T>(string jsonText)
-    {
-
-      DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
-
-      using (MemoryStream stream = new MemoryStream(Encoding.Unicode.GetBytes(jsonText)))
-      { 
-        return (T)serializer.ReadObject(stream);
-      }
-
-    }
-
-    public static T FromJson<T>(WebResponse response)
-    {
-
-      string responseContent = null;
-
-      using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-      {
-        responseContent =  reader.ReadToEnd();
-      }
-
-      DataContractJsonSerializerSettings serializerSettings = new DataContractJsonSerializerSettings();
-      serializerSettings.UseSimpleDictionaryFormat = true;
-
-      DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T), serializerSettings);
-
-      using (MemoryStream memoryStream = new MemoryStream(Encoding.Unicode.GetBytes(responseContent)))
-      {
-        return (T)serializer.ReadObject(memoryStream);
-      }
-
-    }
-    
   }
   
   [DataContract(), System.Reflection.Obfuscation(Exclude = true)]
