@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace BS.Output.Jira
+namespace BugShooting.Output.Jira
 {
   internal class JiraRestProxy
   {
@@ -115,7 +115,7 @@ namespace BS.Output.Jira
 
     }
     
-    static internal async Task<Result> AddCommentToIssue(string url, string userName, string password, string issueKey, string comment)
+    static internal async Task<IssueResult> AddCommentToIssue(string url, string userName, string password, string issueKey, string comment)
     {
 
       try
@@ -125,7 +125,7 @@ namespace BS.Output.Jira
 
         await SendData(requestUrl, userName, password, String.Format("{{\"body\": \"{0}\"}}", HttpUtility.HtmlEncode(comment)));
 
-        return new Result(ResultStatus.Success, null);
+        return new IssueResult(ResultStatus.Success, null);
         
       }
       catch (WebException ex) when (ex.Response is HttpWebResponse)
@@ -137,13 +137,13 @@ namespace BS.Output.Jira
           switch (response.StatusCode)
           {
             case HttpStatusCode.Unauthorized:
-              return new Result(ResultStatus.LoginFailed, null);
+              return new IssueResult(ResultStatus.LoginFailed, null);
 
             case HttpStatusCode.BadRequest:
-              return new Result(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
+              return new IssueResult(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
              
             default:
-              return new Result(ResultStatus.Failed, response.StatusDescription);
+              return new IssueResult(ResultStatus.Failed, response.StatusDescription);
           }
 
         }
@@ -152,7 +152,7 @@ namespace BS.Output.Jira
 
     }
     
-    static internal async Task<Result> AddAttachmentToIssue(string url, string userName, string password, string issueKey, string fullFileName, byte[] fileBytes, string fileMimeType)
+    static internal async Task<IssueResult> AddAttachmentToIssue(string url, string userName, string password, string issueKey, string fullFileName, byte[] fileBytes, string fileMimeType)
     {
 
       try
@@ -162,7 +162,7 @@ namespace BS.Output.Jira
 
         await SendFile(requestUrl, userName, password, fullFileName, fileBytes, fileMimeType);
 
-        return new Result(ResultStatus.Success, null);
+        return new IssueResult(ResultStatus.Success, null);
 
       }
       catch (WebException ex) when (ex.Response is HttpWebResponse)
@@ -174,16 +174,16 @@ namespace BS.Output.Jira
           switch (response.StatusCode)
           {
             case HttpStatusCode.Unauthorized:
-              return new Result(ResultStatus.LoginFailed, null);
+              return new IssueResult(ResultStatus.LoginFailed, null);
 
             case HttpStatusCode.Forbidden:
-              return new Result(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
+              return new IssueResult(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
 
             case HttpStatusCode.NotFound:
-              return new Result(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
+              return new IssueResult(ResultStatus.Failed, FromJson<ErrorResult>(response).GetAllErrorMessages());
 
             default:
-              return new Result(ResultStatus.Failed, response.StatusDescription);
+              return new IssueResult(ResultStatus.Failed, response.StatusDescription);
           }
 
         }
@@ -354,14 +354,14 @@ namespace BS.Output.Jira
     Failed = 3
   }
 
-  class Result
+  class IssueResult
   {
 
     ResultStatus status;
     string failedMessage;
    
-    public Result(ResultStatus status,
-                  string failedMessage)
+    public IssueResult(ResultStatus status,
+                       string failedMessage)
     {
       this.status = status;
       this.failedMessage = failedMessage;

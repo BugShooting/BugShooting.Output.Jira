@@ -1,13 +1,15 @@
-﻿using System;
+﻿using BS.Plugin.V3.Common;
+using BS.Plugin.V3.Output;
+using BS.Plugin.V3.Utilities;
+using System;
 using System.Drawing;
 using System.ServiceModel;
 using System.Threading.Tasks;
-using System.Web;
 using System.Windows.Forms;
 
-namespace BS.Output.Jira
+namespace BugShooting.Output.Jira
 {
-  public class OutputAddIn: V3.OutputAddIn<Output>
+  public class OutputPlugin: OutputPlugin<Output>
   {
 
     protected override string Name
@@ -81,43 +83,43 @@ namespace BS.Output.Jira
 
     }
 
-    protected override OutputValueCollection SerializeOutput(Output Output)
+    protected override OutputValues SerializeOutput(Output Output)
     {
 
-      OutputValueCollection outputValues = new OutputValueCollection();
+      OutputValues outputValues = new OutputValues();
 
-      outputValues.Add(new OutputValue("Name", Output.Name));
-      outputValues.Add(new OutputValue("Url", Output.Url));
-      outputValues.Add(new OutputValue("UserName", Output.UserName));
-      outputValues.Add(new OutputValue("Password",Output.Password, true));
-      outputValues.Add(new OutputValue("OpenItemInBrowser", Convert.ToString(Output.OpenItemInBrowser)));
-      outputValues.Add(new OutputValue("FileName", Output.FileName));
-      outputValues.Add(new OutputValue("FileFormat", Output.FileFormat));
-      outputValues.Add(new OutputValue("LastProjectKey", Output.LastProjectKey));
-      outputValues.Add(new OutputValue("LastIssueTypeID", Output.LastIssueTypeID.ToString()));
-      outputValues.Add(new OutputValue("LastIssueID", Output.LastIssueID.ToString()));
+      outputValues.Add("Name", Output.Name);
+      outputValues.Add("Url", Output.Url);
+      outputValues.Add("UserName", Output.UserName);
+      outputValues.Add("Password",Output.Password, true);
+      outputValues.Add("OpenItemInBrowser", Convert.ToString(Output.OpenItemInBrowser));
+      outputValues.Add("FileName", Output.FileName);
+      outputValues.Add("FileFormat", Output.FileFormat);
+      outputValues.Add("LastProjectKey", Output.LastProjectKey);
+      outputValues.Add("LastIssueTypeID", Output.LastIssueTypeID.ToString());
+      outputValues.Add("LastIssueID", Output.LastIssueID.ToString());
 
       return outputValues;
       
     }
 
-    protected override Output DeserializeOutput(OutputValueCollection OutputValues)
+    protected override Output DeserializeOutput(OutputValues OutputValues)
     {
 
-      return new Output(OutputValues["Name", this.Name].Value,
-                        OutputValues["Url", ""].Value, 
-                        OutputValues["UserName", ""].Value,
-                        OutputValues["Password", ""].Value, 
-                        OutputValues["FileName", "Screenshot"].Value, 
-                        OutputValues["FileFormat", ""].Value,
-                        Convert.ToBoolean(OutputValues["OpenItemInBrowser", Convert.ToString(true)].Value),
-                        OutputValues["LastProjectKey", string.Empty].Value,
-                        Convert.ToInt32(OutputValues["LastIssueTypeID", "0"].Value),
-                        Convert.ToInt32(OutputValues["LastIssueID", "1"].Value));
+      return new Output(OutputValues["Name", this.Name],
+                        OutputValues["Url", ""], 
+                        OutputValues["UserName", ""],
+                        OutputValues["Password", ""], 
+                        OutputValues["FileName", "Screenshot"], 
+                        OutputValues["FileFormat", ""],
+                        Convert.ToBoolean(OutputValues["OpenItemInBrowser", Convert.ToString(true)]),
+                        OutputValues["LastProjectKey", string.Empty],
+                        Convert.ToInt32(OutputValues["LastIssueTypeID", "0"]),
+                        Convert.ToInt32(OutputValues["LastIssueID", "1"]));
 
     }
 
-    protected override async Task<V3.SendResult> Send(IWin32Window Owner, Output Output, V3.ImageData ImageData)
+    protected override async Task<SendResult> Send(IWin32Window Owner, Output Output, ImageData ImageData)
     {
 
       try
@@ -128,7 +130,7 @@ namespace BS.Output.Jira
         bool showLogin = string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password);
         bool rememberCredentials = false;
 
-        string fileName = V3.FileHelper.GetFileName(Output.FileName, Output.FileFormat, ImageData);
+        string fileName = FileHelper.GetFileName(Output.FileName,  ImageData);
 
         while (true)
         {
@@ -144,7 +146,7 @@ namespace BS.Output.Jira
 
             if (credentials.ShowDialog() != true)
             {
-              return new V3.SendResult(V3.Result.Canceled);
+              return new SendResult(Result.Canceled);
             }
 
             userName = credentials.UserName;
@@ -165,7 +167,7 @@ namespace BS.Output.Jira
                 showLogin = true;
                 continue;
               case ResultStatus.Failed:
-                return new V3.SendResult(V3.Result.Failed, projectsResult.FailedMessage);
+                return new SendResult(Result.Failed, projectsResult.FailedMessage);
             }
 
             GetProjectIssueTypesResult issueTypesResult = await JiraRestProxy.GetProjectIssueTypes(Output.Url, userName, password);
@@ -177,7 +179,7 @@ namespace BS.Output.Jira
                 showLogin = true;
                 continue;
               case ResultStatus.Failed:
-                return new V3.SendResult(V3.Result.Failed, projectsResult.FailedMessage);
+                return new SendResult(Result.Failed, projectsResult.FailedMessage);
             }
 
             // Show send window
@@ -188,7 +190,7 @@ namespace BS.Output.Jira
 
             if (!send.ShowDialog() == true)
             {
-              return new V3.SendResult(V3.Result.Canceled);
+              return new SendResult(Result.Canceled);
             }
 
             int issueTypeID;
@@ -209,7 +211,7 @@ namespace BS.Output.Jira
                   showLogin = true;
                   continue;
                 case ResultStatus.Failed:
-                  return new V3.SendResult(V3.Result.Failed, createIssueResult.FailedMessage);
+                  return new SendResult(Result.Failed, createIssueResult.FailedMessage);
               }
 
               issueKey = createIssueResult.IssueKey;
@@ -223,7 +225,7 @@ namespace BS.Output.Jira
               // Add comment to issue
               if (! String.IsNullOrEmpty(send.Comment))
               {
-                Result commentResult = await JiraRestProxy.AddCommentToIssue(Output.Url, userName, password, issueKey, send.Comment);
+                IssueResult commentResult = await JiraRestProxy.AddCommentToIssue(Output.Url, userName, password, issueKey, send.Comment);
                 switch (commentResult.Status)
                 {
                   case ResultStatus.Success:
@@ -232,18 +234,18 @@ namespace BS.Output.Jira
                     showLogin = true;
                     continue;
                   case ResultStatus.Failed:
-                    return new V3.SendResult(V3.Result.Failed, commentResult.FailedMessage);
+                    return new SendResult(Result.Failed, commentResult.FailedMessage);
                 }
               }
               
             }
 
-            string fullFileName = String.Format("{0}.{1}", send.FileName, V3.FileHelper.GetFileExtention(Output.FileFormat));
-            string fileMimeType = V3.FileHelper.GetMimeType(Output.FileFormat);
-            byte[] fileBytes = V3.FileHelper.GetFileBytes(Output.FileFormat, ImageData);
+            string fullFileName = String.Format("{0}.{1}", send.FileName, FileHelper.GetFileExtention(Output.FileFormat));
+            string fileMimeType = FileHelper.GetMimeType(Output.FileFormat);
+            byte[] fileBytes = FileHelper.GetFileBytes(Output.FileFormat, ImageData);
 
             // Add attachment to issue
-            Result attachmentResult = await JiraRestProxy.AddAttachmentToIssue(Output.Url, userName, password, issueKey, fullFileName, fileBytes, fileMimeType);
+            IssueResult attachmentResult = await JiraRestProxy.AddAttachmentToIssue(Output.Url, userName, password, issueKey, fullFileName, fileBytes, fileMimeType);
             switch (attachmentResult.Status)
             {
               case ResultStatus.Success:
@@ -252,29 +254,29 @@ namespace BS.Output.Jira
                 showLogin = true;
                 continue;
               case ResultStatus.Failed:
-                return new V3.SendResult(V3.Result.Failed, attachmentResult.FailedMessage);
+                return new SendResult(Result.Failed, attachmentResult.FailedMessage);
             }
 
 
             // Open issue in browser
             if (Output.OpenItemInBrowser)
             {
-              V3.WebHelper.OpenUrl(String.Format("{0}/browse/{1}", Output.Url, issueKey));
+              WebHelper.OpenUrl(String.Format("{0}/browse/{1}", Output.Url, issueKey));
             }
             
 
             int issueID = Convert.ToInt32(issueKey.Split(new Char[]{'-'})[1]);
-            return new V3.SendResult(V3.Result.Success,
-                                     new Output(Output.Name,
-                                                Output.Url,
-                                                (rememberCredentials) ? userName : Output.UserName,
-                                                (rememberCredentials) ? password : Output.Password,
-                                                Output.FileName,
-                                                Output.FileFormat,
-                                                Output.OpenItemInBrowser,
-                                                send.ProjectKey,
-                                                issueTypeID,
-                                                issueID));
+            return new SendResult(Result.Success,
+                                  new Output(Output.Name,
+                                             Output.Url,
+                                             (rememberCredentials) ? userName : Output.UserName,
+                                             (rememberCredentials) ? password : Output.Password,
+                                             Output.FileName,
+                                             Output.FileFormat,
+                                             Output.OpenItemInBrowser,
+                                             send.ProjectKey,
+                                             issueTypeID,
+                                             issueID));
 
           }
           catch (FaultException ex) when (ex.Reason.ToString() == "Access denied")
@@ -288,7 +290,7 @@ namespace BS.Output.Jira
       }
       catch (Exception ex)
       {
-        return new V3.SendResult(V3.Result.Failed, ex.Message);
+        return new SendResult(Result.Failed, ex.Message);
       }
 
     }

@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
     <metadata>
-			<id>BS.Output.Jira</id>
+			<id>BugShooting.Output.Jira</id>
 			<version>1.0.0</version>
 			<title>JIRA Output for Bug Shooting</title>
       <authors>Bug Shooting, Alexej Hirsch</authors>
       <owners>Bug Shooting, Alexej Hirsch</owners>
-      <licenseUrl>https://github.com/BugShooting/Output.Jira/raw/master/LICENSE.txt</licenseUrl>
+      <licenseUrl>https://github.com/BugShooting/BugShooting.Output.Jira/raw/master/LICENSE.txt</licenseUrl>
 			<projectUrl>https://github.com/BugShooting</projectUrl>
-			<iconUrl>https://github.com/BugShooting/Output.Jira/raw/master/BS.Output.Jira/Resources/logo_64.png</iconUrl>
+			<iconUrl>https://github.com/BugShooting/BugShooting.Output.Jira/raw/master/BugShooting.Output.Jira/Resources/logo_64.png</iconUrl>
 			<requireLicenseAcceptance>false</requireLicenseAcceptance>
 			<releaseNotes />
 			<description>Attach screenshots to JIRA issues.</description>
 			<copyright />
-			<tags>bugshooting.com/output/v3</tags>
+			<tags>bugshooting.plugin.v3.output</tags>
     </metadata>
     <files>
-			<file src="BS.Output.Jira.dll" />
+			<file src="BugShooting.Output.Jira.dll" />
     </files>
 </package>

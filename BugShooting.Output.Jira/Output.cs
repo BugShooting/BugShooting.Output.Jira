@@ -1,4 +1,6 @@
-﻿namespace BS.Output.Jira
+﻿using BS.Plugin.V3.Output;
+
+namespace BugShooting.Output.Jira
 {
 
   public class Output: IOutput 

@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Text.RegularExpressions;
 
-namespace BS.Output.Jira
+namespace BugShooting.Output.Jira
 {
   partial class Send : Window
   {

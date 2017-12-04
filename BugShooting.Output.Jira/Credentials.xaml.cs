@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace BS.Output.Jira
+namespace BugShooting.Output.Jira
 {
   partial class Credentials : Window
   {
