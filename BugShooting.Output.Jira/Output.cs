@@ -1,4 +1,5 @@
 ﻿using BS.Plugin.V3.Output;
+using System;
 
 namespace BugShooting.Output.Jira
 {
@@ -11,7 +12,7 @@ namespace BugShooting.Output.Jira
     string userName;
     string password;
     string fileName;
-    string fileFormat;
+    Guid fileFormatID;
     bool openItemInBrowser;
     string lastProjectKey;
     int lastIssueTypeID;
@@ -21,8 +22,8 @@ namespace BugShooting.Output.Jira
                   string url, 
                   string userName,
                   string password, 
-                  string fileName, 
-                  string fileFormat,
+                  string fileName,
+                  Guid fileFormatID,
                   bool openItemInBrowser, 
                   string lastProjectKey,
                   int lastIssueTypeID,
@@ -33,7 +34,7 @@ namespace BugShooting.Output.Jira
       this.userName = userName;
       this.password = password;
       this.fileName = fileName;
-      this.fileFormat = fileFormat;
+      this.fileFormatID = fileFormatID;
       this.openItemInBrowser = openItemInBrowser;
       this.lastProjectKey = lastProjectKey;
       this.lastIssueTypeID = lastIssueTypeID;
@@ -70,9 +71,9 @@ namespace BugShooting.Output.Jira
       get { return fileName; }
     }
 
-    public string FileFormat
+    public Guid FileFormatID
     {
-      get { return fileFormat; }
+      get { return fileFormatID; }
     }
 
     public bool OpenItemInBrowser
