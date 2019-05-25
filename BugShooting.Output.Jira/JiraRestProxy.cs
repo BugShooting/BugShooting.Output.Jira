@@ -387,8 +387,8 @@ namespace BugShooting.Output.Jira
     List<JiraRestProject> projects;
 
     public GetProjectsResult(ResultStatus status,
-                  string failedMessage,
-                  List<JiraRestProject> projects)
+                             string failedMessage,
+                             List<JiraRestProject> projects)
     {
       this.status = status;
       this.failedMessage = failedMessage;
