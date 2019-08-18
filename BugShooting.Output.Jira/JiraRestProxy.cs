@@ -13,13 +13,13 @@ namespace BugShooting.Output.Jira
   internal class JiraRestProxy
   {
     
-    static internal async Task<GetProjectsResult> GetProjects(string url, string userName, string password)
+    static internal async Task<GetProjectsResult> GetProjects(string url, string userName, string apiToken)
     {
 
       try
       {
         string requestUrl = GetApiUrl(url, "project");
-        string resultData = await GetData(requestUrl, userName, password);
+        string resultData = await GetData(requestUrl, userName, apiToken);
         List<JiraRestProject> projects  = FromJson<List<JiraRestProject>>(resultData);
 
         return new GetProjectsResult(ResultStatus.Success, null, projects);
@@ -46,13 +46,13 @@ namespace BugShooting.Output.Jira
 
     }
 
-    static internal async Task<GetProjectIssueTypesResult> GetProjectIssueTypes(string url, string userName, string password)
+    static internal async Task<GetProjectIssueTypesResult> GetProjectIssueTypes(string url, string userName, string apiToken)
     {
       
       try
       {
         string requestUrl = GetApiUrl(url, "issue/createmeta");
-        string resultData = await GetData(requestUrl, userName, password);
+        string resultData = await GetData(requestUrl, userName, apiToken);
         JiraRestIssueTypes issueTypes = FromJson<JiraRestIssueTypes>(resultData);
 
         return new GetProjectIssueTypesResult(ResultStatus.Success, null, issueTypes);
@@ -79,13 +79,13 @@ namespace BugShooting.Output.Jira
 
     }
 
-    static internal async Task<CreateIssueResult> CreateIssue(string url, string userName, string password, string projectKey, int issueTypeID, string summary, string description)
+    static internal async Task<CreateIssueResult> CreateIssue(string url, string userName, string apiToken, string projectKey, int issueTypeID, string summary, string description)
     {
 
       try
       {
         string requestUrl = GetApiUrl(url, "issue");
-        string resultData = await SendData(requestUrl, userName, password, String.Format("{{\"fields\":{{\"project\":{{\"key\":\"{0}\"}},\"summary\":\"{1}\",\"description\":\"{2}\",\"issuetype\": {{\"id\":\"{3}\"}}}}}}\"", HttpUtility.HtmlEncode(projectKey), HttpUtility.HtmlEncode(summary), HttpUtility.HtmlEncode(description), issueTypeID));
+        string resultData = await SendData(requestUrl, userName, apiToken, String.Format("{{\"fields\":{{\"project\":{{\"key\":\"{0}\"}},\"summary\":\"{1}\",\"description\":\"{2}\",\"issuetype\": {{\"id\":\"{3}\"}}}}}}\"", HttpUtility.HtmlEncode(projectKey), HttpUtility.HtmlEncode(summary), HttpUtility.HtmlEncode(description), issueTypeID));
         string issueKey =  FromJson<CreateIssueDataResult>(resultData).IssueKey;
 
         return new CreateIssueResult(ResultStatus.Success, null, issueKey);
@@ -115,7 +115,7 @@ namespace BugShooting.Output.Jira
 
     }
     
-    static internal async Task<IssueResult> AddCommentToIssue(string url, string userName, string password, string issueKey, string comment)
+    static internal async Task<IssueResult> AddCommentToIssue(string url, string userName, string apiToken, string issueKey, string comment)
     {
 
       try
@@ -123,7 +123,7 @@ namespace BugShooting.Output.Jira
 
         string requestUrl = GetApiUrl(url, String.Format("issue/{0}/comment", issueKey));
 
-        await SendData(requestUrl, userName, password, String.Format("{{\"body\": \"{0}\"}}", HttpUtility.HtmlEncode(comment)));
+        await SendData(requestUrl, userName, apiToken, String.Format("{{\"body\": \"{0}\"}}", HttpUtility.HtmlEncode(comment)));
 
         return new IssueResult(ResultStatus.Success, null);
         
@@ -152,7 +152,7 @@ namespace BugShooting.Output.Jira
 
     }
     
-    static internal async Task<IssueResult> AddAttachmentToIssue(string url, string userName, string password, string issueKey, string fullFileName, byte[] fileBytes, string fileMimeType)
+    static internal async Task<IssueResult> AddAttachmentToIssue(string url, string userName, string apiToken, string issueKey, string fullFileName, byte[] fileBytes, string fileMimeType)
     {
 
       try
@@ -160,7 +160,7 @@ namespace BugShooting.Output.Jira
         
         string requestUrl = GetApiUrl(url, string.Format("issue/{0}/attachments", issueKey));
 
-        await SendFile(requestUrl, userName, password, fullFileName, fileBytes, fileMimeType);
+        await SendFile(requestUrl, userName, apiToken, fullFileName, fileBytes, fileMimeType);
 
         return new IssueResult(ResultStatus.Success, null);
 
@@ -192,14 +192,14 @@ namespace BugShooting.Output.Jira
 
     }
 
-    private static async Task<string> GetData(string url, string userName, string password)
+    private static async Task<string> GetData(string url, string userName, string apiToken)
     {
 
       WebRequest request = WebRequest.Create(url);
       request.Method = "GET";
       request.ContentType = "application/json";
      
-      string basicAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, password)));
+      string basicAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, apiToken)));
       request.Headers.Add("Authorization", "Basic " + basicAuth);
 
       using (WebResponse response = await request.GetResponseAsync())
@@ -215,14 +215,14 @@ namespace BugShooting.Output.Jira
 
     }
 
-    private static async Task<string> SendData(string url, string userName, string password, string jsonData)
+    private static async Task<string> SendData(string url, string userName, string apiToken, string jsonData)
     {
       
       WebRequest request = WebRequest.Create(url);
       request.Method = "POST";
       request.ContentType = "application/json";
 
-      string basicAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, password)));
+      string basicAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, apiToken)));
       request.Headers.Add("Authorization", "Basic " + basicAuth);
 
       byte[] postData = Encoding.UTF8.GetBytes(jsonData);
@@ -248,7 +248,7 @@ namespace BugShooting.Output.Jira
 
     }
 
-    private static async Task<string> SendFile(string url, string userName, string password, string fullFileName, byte[] fileBytes, string fileMimeType)
+    private static async Task<string> SendFile(string url, string userName, string apiToken, string fullFileName, byte[] fileBytes, string fileMimeType)
     {
 
       string boundary = string.Format("----------{0}", DateTime.Now.Ticks.ToString("x"));
@@ -269,7 +269,7 @@ namespace BugShooting.Output.Jira
 
       request.Headers.Add("X-Atlassian-Token", "no-check");
 
-      string basicAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, password)));
+      string basicAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, apiToken)));
       request.Headers.Add("Authorization", "Basic " + basicAuth);
            
       request.ContentLength = postBytes.Length + fileBytes.Length + boundaryBytes.Length;

@@ -26,7 +26,7 @@ namespace BugShooting.Output.Jira
       NameTextBox.Text = output.Name;
       UrlTextBox.Text = output.Url;
       UserNameTextBox.Text = output.UserName;
-      PasswordBox.Password = output.Password;
+      ApiTokenBox.Password = output.ApiToken;
       FileNameTextBox.Text = output.FileName;
 
       FileFormatComboBox.ItemsSource = FileHelper.GetFileFormats();
@@ -58,9 +58,9 @@ namespace BugShooting.Output.Jira
       get { return UserNameTextBox.Text; }
     }
 
-    public string Password
+    public string ApiToken
     {
-      get { return PasswordBox.Password; }
+      get { return ApiTokenBox.Password; }
     }
 
     public string FileName

@@ -42,8 +42,8 @@
         <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <Label Grid.Column="0">Password</Label>
-      <PasswordBox x:Name="PasswordBox" Grid.Column="1" VerticalContentAlignment="Center" />
+      <Label Grid.Column="0">API token</Label>
+      <PasswordBox x:Name="ApiTokenBox" Grid.Column="1" VerticalContentAlignment="Center" />
     </Grid>
     <Grid Margin="4">
       <Grid.ColumnDefinitions>

@@ -10,7 +10,7 @@ namespace BugShooting.Output.Jira
     string name;
     string url;
     string userName;
-    string password;
+    string apiToken;
     string fileName;
     Guid fileFormatID;
     bool openItemInBrowser;
@@ -21,7 +21,7 @@ namespace BugShooting.Output.Jira
     public Output(string name, 
                   string url, 
                   string userName,
-                  string password, 
+                  string apiToken, 
                   string fileName,
                   Guid fileFormatID,
                   bool openItemInBrowser, 
@@ -32,7 +32,7 @@ namespace BugShooting.Output.Jira
       this.name = name;
       this.url = url;
       this.userName = userName;
-      this.password = password;
+      this.apiToken = apiToken;
       this.fileName = fileName;
       this.fileFormatID = fileFormatID;
       this.openItemInBrowser = openItemInBrowser;
@@ -61,9 +61,9 @@ namespace BugShooting.Output.Jira
       get { return userName; }
     }
 
-    public string Password
+    public string ApiToken
     {
-      get { return password; }
+      get { return apiToken; }
     }
           
     public string FileName

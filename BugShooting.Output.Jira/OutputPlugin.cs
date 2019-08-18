@@ -69,7 +69,7 @@ namespace BugShooting.Output.Jira
         return new Output(edit.OutputName,
                           edit.Url,
                           edit.UserName,
-                          edit.Password,
+                          edit.ApiToken,
                           edit.FileName,
                           edit.FileFormatID,
                           edit.OpenItemInBrowser,
@@ -92,7 +92,7 @@ namespace BugShooting.Output.Jira
       outputValues.Add("Name", Output.Name);
       outputValues.Add("Url", Output.Url);
       outputValues.Add("UserName", Output.UserName);
-      outputValues.Add("Password",Output.Password, true);
+      outputValues.Add("ApiToken",Output.ApiToken, true);
       outputValues.Add("OpenItemInBrowser", Convert.ToString(Output.OpenItemInBrowser));
       outputValues.Add("FileName", Output.FileName);
       outputValues.Add("FileFormatID", Output.FileFormatID.ToString());
@@ -110,7 +110,7 @@ namespace BugShooting.Output.Jira
       return new Output(OutputValues["Name", this.Name],
                         OutputValues["Url", ""], 
                         OutputValues["UserName", ""],
-                        OutputValues["Password", ""], 
+                        OutputValues["ApiToken", ""], 
                         OutputValues["FileName", "Screenshot"],
                         new Guid(OutputValues["FileFormatID", ""]),
                         Convert.ToBoolean(OutputValues["OpenItemInBrowser", Convert.ToString(true)]),
@@ -127,8 +127,8 @@ namespace BugShooting.Output.Jira
       {
 
         string userName = Output.UserName;
-        string password = Output.Password;
-        bool showLogin = string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password);
+        string apiToken = Output.ApiToken;
+        bool showLogin = string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(apiToken);
         bool rememberCredentials = false;
 
         string fileName = AttributeHelper.ReplaceAttributes(Output.FileName,  ImageData);
@@ -140,7 +140,7 @@ namespace BugShooting.Output.Jira
           {
 
             // Show credentials window
-            Credentials credentials = new Credentials(Output.Url, userName, password, rememberCredentials);
+            Credentials credentials = new Credentials(Output.Url, userName, apiToken, rememberCredentials);
 
             var ownerHelper = new System.Windows.Interop.WindowInteropHelper(credentials);
             ownerHelper.Owner = Owner.Handle;
@@ -151,7 +151,7 @@ namespace BugShooting.Output.Jira
             }
 
             userName = credentials.UserName;
-            password = credentials.Password;
+            apiToken = credentials.ApiToken;
             rememberCredentials = credentials.Remember;
 
           }
@@ -159,7 +159,7 @@ namespace BugShooting.Output.Jira
           try
           {
 
-            GetProjectsResult projectsResult = await JiraRestProxy.GetProjects(Output.Url, userName, password);
+            GetProjectsResult projectsResult = await JiraRestProxy.GetProjects(Output.Url, userName, apiToken);
             switch (projectsResult.Status)
             {
               case ResultStatus.Success:
@@ -171,7 +171,7 @@ namespace BugShooting.Output.Jira
                 return new SendResult(Result.Failed, projectsResult.FailedMessage);
             }
 
-            GetProjectIssueTypesResult issueTypesResult = await JiraRestProxy.GetProjectIssueTypes(Output.Url, userName, password);
+            GetProjectIssueTypesResult issueTypesResult = await JiraRestProxy.GetProjectIssueTypes(Output.Url, userName, apiToken);
             switch (issueTypesResult.Status)
             {
               case ResultStatus.Success:
@@ -203,7 +203,7 @@ namespace BugShooting.Output.Jira
               issueTypeID = send.IssueTypeID;
 
               // Create issue
-              CreateIssueResult createIssueResult = await JiraRestProxy.CreateIssue(Output.Url, userName, password, send.ProjectKey, issueTypeID, send.Summary, send.Description);
+              CreateIssueResult createIssueResult = await JiraRestProxy.CreateIssue(Output.Url, userName, apiToken, send.ProjectKey, issueTypeID, send.Summary, send.Description);
               switch (createIssueResult.Status)
               {
                 case ResultStatus.Success:
@@ -226,7 +226,7 @@ namespace BugShooting.Output.Jira
               // Add comment to issue
               if (! String.IsNullOrEmpty(send.Comment))
               {
-                IssueResult commentResult = await JiraRestProxy.AddCommentToIssue(Output.Url, userName, password, issueKey, send.Comment);
+                IssueResult commentResult = await JiraRestProxy.AddCommentToIssue(Output.Url, userName, apiToken, issueKey, send.Comment);
                 switch (commentResult.Status)
                 {
                   case ResultStatus.Success:
@@ -248,7 +248,7 @@ namespace BugShooting.Output.Jira
             byte[] fileBytes = FileHelper.GetFileBytes(Output.FileFormatID, ImageData);
 
             // Add attachment to issue
-            IssueResult attachmentResult = await JiraRestProxy.AddAttachmentToIssue(Output.Url, userName, password, issueKey, fullFileName, fileBytes, fileFormat.MimeType);
+            IssueResult attachmentResult = await JiraRestProxy.AddAttachmentToIssue(Output.Url, userName, apiToken, issueKey, fullFileName, fileBytes, fileFormat.MimeType);
             switch (attachmentResult.Status)
             {
               case ResultStatus.Success:
@@ -273,7 +273,7 @@ namespace BugShooting.Output.Jira
                                   new Output(Output.Name,
                                              Output.Url,
                                              (rememberCredentials) ? userName : Output.UserName,
-                                             (rememberCredentials) ? password : Output.Password,
+                                             (rememberCredentials) ? apiToken : Output.ApiToken,
                                              Output.FileName,
                                              Output.FileFormatID,
                                              Output.OpenItemInBrowser,

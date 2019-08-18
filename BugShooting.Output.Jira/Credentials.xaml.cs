@@ -6,13 +6,13 @@ namespace BugShooting.Output.Jira
   partial class Credentials : Window
   {
 
-    public Credentials(string url, string userName, string password, bool remember)
+    public Credentials(string url, string userName, string apiToken, bool remember)
     {
       InitializeComponent();
 
       Url.Text = url;
       UserNameTextBox.Text = userName;
-      PasswordBox.Password = password;
+      ApiTokenBox.Password = apiToken;
       RememberCheckBox.IsChecked = remember;
 
     }
@@ -22,9 +22,9 @@ namespace BugShooting.Output.Jira
       get { return UserNameTextBox.Text; }
     }
    
-    public string Password
+    public string ApiToken
     {
-      get { return PasswordBox.Password; }
+      get { return ApiTokenBox.Password; }
     }
 
     public bool Remember
